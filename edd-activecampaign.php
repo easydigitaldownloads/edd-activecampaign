@@ -374,29 +374,27 @@ final class EDD_ActiveCampaign {
 	 * @return bool
 	 */
 	public function subscribe_email( $email, $first_name = '', $last_name = '' ) {
-		global $edd_options;
+		if ( edd_get_option( 'eddactivecampaign_api' ) ) {
+			$list = edd_get_option( 'eddactivecampaign_list' );
 
-		if ( isset( $edd_options['eddactivecampaign_api'] ) && strlen( trim( $edd_options['eddactivecampaign_api'] ) ) > 0 ) {
-
-			if ( ! isset( $edd_options['eddactivecampaign_list'] ) || strlen( trim( $edd_options['eddactivecampaign_list'] ) ) <= 0 ) {
+			if ( ! $list ) {
 				return false;
 			}
 
 			// Load ActiveCampaign API
 			require_once( 'vendor/ActiveCampaign.class.php' );
 
-			$ac = new ActiveCampaign( $edd_options['eddactivecampaign_apiurl'], $edd_options['eddactivecampaign_api'] );
+			$ac = new ActiveCampaign( edd_get_option( 'eddactivecampaign_apiurl' ), edd_get_option( 'eddactivecampaign_api' ) );
 
 			$subscriber = array(
 				"email"              => "$email",
 				"first_name"         => "$first_name",
 				"last_name"          => "$last_name",
-				"p[{$list_id}]"      => $edd_options['eddactivecampaign_list'],
+				"p[{$list_id}]"      => $list,
 				"status[{$list_id}]" => 1,
 			);
 
 			$subscriber_add = $ac->api( "subscriber/add", $subscriber );
-
 		}
 
 		return false;
