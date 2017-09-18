@@ -296,7 +296,8 @@ final class EDD_ActiveCampaign {
 		add_action( 'edd_purchase_form_before_submit', array( $this, 'display_checkout_fields' ), 100 );
 
 		/* Filters */
-		add_filter( 'edd_settings_misc', array( $this, 'register_settings' ) );
+		add_filter( 'edd_settings_sections_extensions', array( $this, 'settings_section' ) );
+		add_filter( 'edd_settings_extensions', array( $this, 'register_settings' ) );
 
 		do_action_ref_array( 'edd_activecampaign_after_setup_actions', array( &$this ) );
 	}
@@ -390,6 +391,22 @@ final class EDD_ActiveCampaign {
 	}
 
 	/**
+	 * Registers the subsection for EDD Settings.
+	 *
+	 * @access public
+	 * @since  1.1
+	 *
+	 * @param  array $sections Settings Sections.
+	 *
+	 * @return array Sections with ActiveCampaign added.
+	 */
+	public function settings_section( $sections ) {
+		$sections['activecampaign'] = __( 'ActiveCampaign', 'edd-activecampaign' );
+
+		return $sections;
+	}
+
+	/**
 	 * Register settings.
 	 *
 	 * @access public
@@ -400,11 +417,11 @@ final class EDD_ActiveCampaign {
 	 * @return array $settings Updated settings.
 	 */
 	public function register_settings( $settings ) {
-		$eddactivecampaign_settings = array(
+		$activecampaign_settings = array(
 			array(
 				'id'   => 'eddactivecampaign_settings',
 				'name' => '<strong>' . __( 'ActiveCampaign Settings', 'edd-activecampaign' ) . '</strong>',
-				'desc' => __( 'Configure ActiveCampaign Integration Settings', 'edd-activecampaign' ),
+				'desc' => '',
 				'type' => 'header',
 			),
 			array(
@@ -437,7 +454,11 @@ final class EDD_ActiveCampaign {
 			),
 		);
 
-		return array_merge( $settings, $eddactivecampaign_settings );
+		if ( version_compare( EDD_VERSION, 2.5, '>=' ) ) {
+			$activecampaign_settings = array( 'activecampaign' => $activecampaign_settings );
+		}
+
+		return array_merge( $settings, $activecampaign_settings );
 	}
 }
 
