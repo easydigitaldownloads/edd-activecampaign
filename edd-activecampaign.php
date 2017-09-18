@@ -382,7 +382,8 @@ final class EDD_ActiveCampaign {
 				return false;
 			}
 
-			require_once( 'includes/ActiveCampaign.class.php' );
+			// Load ActiveCampaign API
+			require_once( 'vendor/ActiveCampaign.class.php' );
 
 			$ac = new ActiveCampaign( $edd_options['eddactivecampaign_apiurl'], $edd_options['eddactivecampaign_api'] );
 
