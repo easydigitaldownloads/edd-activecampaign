@@ -460,6 +460,20 @@ final class EDD_ActiveCampaign {
 
 		return array_merge( $settings, $activecampaign_settings );
 	}
+
+	/**
+	 * Instantiates the EDD_License class and passes the plugin data to enable
+	 * remote license checks with EDD server.
+	 *
+	 * @since  1.1
+	 * @access public
+	 * @return void
+	 */
+	public function updater() {
+		if ( class_exists( 'EDD_License' ) ) {
+			$license = new EDD_License( $this->file, 'ActiveCampaign', $this->version, 'EDD Team', 'edd_activecampaign_license_key' );
+		}
+	}
 }
 
 endif;
