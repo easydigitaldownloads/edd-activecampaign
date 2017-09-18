@@ -421,7 +421,7 @@ final class EDD_ActiveCampaign {
 			array(
 				'id'   => 'eddactivecampaign_settings',
 				'name' => '<strong>' . __( 'ActiveCampaign Settings', 'edd-activecampaign' ) . '</strong>',
-				'desc' => '__( 'Configure ActiveCampaign Integration Settings', 'edd-activecampaign' )',
+				'desc' => '',
 				'type' => 'header',
 			),
 			array(
