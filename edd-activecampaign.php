@@ -105,8 +105,8 @@ final class EDD_ActiveCampaign {
 		$this->lang_dir    = apply_filters( 'edd_activecampaign_lang_dir', trailingslashit( $this->plugin_path . 'languages' ) );
 
 		// Classes
-		$this->classes_dir = apply_filters( 'edd_activecampaign_classes_dir', trailingslashit( $this->plugin_path . 'classes' ) );
-		$this->classes_url = apply_filters( 'edd_activecampaign_classes_url', trailingslashit( $this->plugin_url . 'classes' ) );
+		$this->includes_dir = apply_filters( 'edd_activecampaign_includes_dir', trailingslashit( $this->plugin_path . 'includes' ) );
+		$this->includes_url = apply_filters( 'edd_activecampaign_includes_url', trailingslashit( $this->plugin_url . 'includes' ) );
 	}
 
 	/**
@@ -236,6 +236,7 @@ final class EDD_ActiveCampaign {
 	public function init() {
 		do_action( 'edd_activecampaign_before_init' );
 
+		$this->load_textdomain();
 
 		do_action( 'edd_activecampaign_after_init' );
 	}
@@ -248,6 +249,35 @@ final class EDD_ActiveCampaign {
 	 * @return void
 	 */
 	private function load_classes() {
+	}
+
+	/**
+	 * Load Plugin Textdomain
+	 *
+	 * Looks for the plugin translation files in certain directories and loads
+	 * them to allow the plugin to be localised
+	 *
+	 * @since 1.0
+	 * @access public
+	 * @return bool True on success, false on failure
+	 */
+	public function load_plugin_textdomain() {
+		// Traditional WordPress plugin locale filter
+		$locale = apply_filters( 'plugin_locale',  get_locale(), 'edd-activecampaign' );
+		$mofile = sprintf( '%1$s-%2$s.mo', 'edd-activecampaign', $locale );
+
+		// Setup paths to current locale file
+		$mofile_local  = $this->lang_dir . $mofile;
+
+		if ( file_exists( $mofile_local ) ) {
+			// Look in the /wp-content/plugins/edd-reviews/languages/ folder
+			load_textdomain( 'edd-activecampaign', $mofile_local );
+		} else {
+			// Load the default language files
+			load_plugin_textdomain( 'edd-activecampaign', false, $this->lang_dir );
+		}
+
+		return false;
 	}
 
 	/**
