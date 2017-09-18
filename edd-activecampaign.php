@@ -62,7 +62,7 @@ function eddactivecampaign_subscribe_email($email, $first_name = '', $last_name 
 		if( ! isset( $edd_options['eddactivecampaign_list'] ) || strlen( trim( $edd_options['eddactivecampaign_list'] ) ) <= 0 )
 			return false;
         
-        require_once('inc/includes/ActiveCampaign.class.php');
+        require_once('includes/ActiveCampaign.class.php');
         
         $ac = new ActiveCampaign($edd_options['eddactivecampaign_apiurl'], $edd_options['eddactivecampaign_api']);
         
