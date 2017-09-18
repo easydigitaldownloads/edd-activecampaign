@@ -462,5 +462,4 @@ function edd_activecampaign() {
 
 	return EDD_ActiveCampaign::get_instance();
 }
-
 add_action( 'plugins_loaded', 'edd_activecampaign', 10 );
