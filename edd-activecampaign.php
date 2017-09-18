@@ -292,8 +292,11 @@ final class EDD_ActiveCampaign {
 		do_action_ref_array( 'edd_activecampaign_before_setup_actions', array( &$this ) );
 
 		/* Actions */
+		add_action( 'edd_checkout_before_gateway', array( $this, 'check_for_email_signup' ), 10, 2 );
+		add_action( 'edd_purchase_form_before_submit', array( $this, 'display_checkout_fields' ), 100 );
 
 		/* Filters */
+		add_filter( 'edd_settings_misc', array( $this, 'settings' ) );
 
 		do_action_ref_array( 'edd_activecampaign_after_setup_actions', array( &$this ) );
 	}
@@ -307,6 +310,134 @@ final class EDD_ActiveCampaign {
 	 */
 	public function admin_notices() {
 		echo '<div class="error"><p>' . sprintf( __( 'You must install %sEasy Digital Downloads%s for the ActiveCampaign Add-On to work.', 'edd-activecampaign' ), '<a href="http://easydigitaldownloads.com" title="Easy Digital Downloads">', '</a>' ) . '</p></div>';
+	}
+
+	/**
+	 * Checks whether a user should be signed up for the ActiveCampaign list.
+	 *
+	 * @access public
+	 * @since  1.0
+	 *
+	 * @param array $data      Checkout data.
+	 * @param array $user_info User details.
+	 *
+	 * @return void
+	 */
+	public function check_for_email_signup( $data, $user_info ) {
+		if ( $data['eddactivecampaign_activecampaign_signup'] ) {
+			$email = $user_info['email'];
+			$this->subscribe_email( $email, $user_info['first_name'], $user_info['last_name'] );
+		}
+	}
+
+	/**
+	 * Add an email address to the ActiveCampaign list.
+	 *
+	 * @access public
+	 * @since  1.0
+	 *
+	 * @param string $email      Email address.
+	 * @param string $first_name First name.
+	 * @param string $last_name  Last name.
+	 *
+	 * @return bool
+	 */
+	public function subscribe_email( $email, $first_name = '', $last_name = '' ) {
+		global $edd_options;
+
+		if ( isset( $edd_options['eddactivecampaign_api'] ) && strlen( trim( $edd_options['eddactivecampaign_api'] ) ) > 0 ) {
+
+			if ( ! isset( $edd_options['eddactivecampaign_list'] ) || strlen( trim( $edd_options['eddactivecampaign_list'] ) ) <= 0 ) {
+				return false;
+			}
+
+			require_once( 'includes/ActiveCampaign.class.php' );
+
+			$ac = new ActiveCampaign( $edd_options['eddactivecampaign_apiurl'], $edd_options['eddactivecampaign_api'] );
+
+			$subscriber = array(
+				"email"              => "$email",
+				"first_name"         => "$first_name",
+				"last_name"          => "$last_name",
+				"p[{$list_id}]"      => $edd_options['eddactivecampaign_list'],
+				"status[{$list_id}]" => 1,
+			);
+
+			$subscriber_add = $ac->api( "subscriber/add", $subscriber );
+
+		}
+
+		return false;
+	}
+
+	/**
+	 * Display checkout fields.
+	 *
+	 * @access public
+	 * @since  1.0
+	 */
+	public function display_checkout_fields() {
+		global $edd_options;
+		ob_start();
+		if ( isset( $edd_options['eddactivecampaign_api'] ) && strlen( trim( $edd_options['eddactivecampaign_api'] ) ) > 0 ) { ?>
+			<p>
+				<input name="eddactivecampaign_activecampaign_signup" id="eddactivecampaign_activecampaign_signup" type="checkbox" checked="checked" />
+				<label for="eddactivecampaign_activecampaign_signup"><?php echo isset( $edd_options['eddactivecampaign_label'] ) ? $edd_options['eddactivecampaign_label'] : __( 'Sign up for our mailing list', 'edd-activecampaign' ); ?></label>
+			</p>
+			<?php
+		}
+		echo ob_get_clean();
+	}
+
+	/**
+	 * Register settings.
+	 *
+	 * @access public
+	 * @since  1.0
+	 *
+	 * @param array $settings Settings.
+	 *
+	 * @return array $settings Updated settings.
+	 */
+	public function register_settings( $settings ) {
+		$eddactivecampaign_settings = array(
+			array(
+				'id'   => 'eddactivecampaign_settings',
+				'name' => '<strong>' . __( 'ActiveCampaign Settings', 'edd-activecampaign' ) . '</strong>',
+				'desc' => __( 'Configure ActiveCampaign Integration Settings', 'edd-activecampaign' ),
+				'type' => 'header',
+			),
+			array(
+				'id'   => 'eddactivecampaign_apiurl',
+				'name' => __( 'API URL', 'edd-activecampaign' ),
+				'desc' => __( 'Enter your ActiveCampaign API URL. It is located in the Settings --> API area of your ActiveCampaign account.', 'edd-activecampaign' ),
+				'type' => 'text',
+				'size' => 'regular',
+			),
+			array(
+				'id'   => 'eddactivecampaign_api',
+				'name' => __( 'API Key', 'edd-activecampaign' ),
+				'desc' => __( 'Enter your ActiveCampaign API Key. It is located in the Settings --> API area of your ActiveCampaign account.', 'edd-activecampaign' ),
+				'type' => 'text',
+				'size' => 'regular',
+			),
+			array(
+				'id'   => 'eddactivecampaign_list',
+				'name' => __( 'List ID', 'edd-activecampaign' ),
+				'desc' => __( 'Enter your List ID. It will be in the form of a number.', 'edd-activecampaign' ),
+				'type' => 'text',
+				'size' => 'regular',
+			),
+			array(
+				'id'   => 'eddactivecampaign_label',
+				'name' => __( 'Checkout Label', 'edd-activecampaign' ),
+				'desc' => __( 'This is the text shown next to the signup option', 'edd-activecampaign' ),
+				'type' => 'text',
+				'size' => 'regular',
+			),
+		);
+
+		return array_merge( $settings, $eddactivecampaign_settings );
 	}
 }
 
