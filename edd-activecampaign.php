@@ -296,7 +296,7 @@ final class EDD_ActiveCampaign {
 		add_action( 'edd_purchase_form_before_submit', array( $this, 'display_checkout_fields' ), 100 );
 
 		/* Filters */
-		add_filter( 'edd_settings_misc', array( $this, 'settings' ) );
+		add_filter( 'edd_settings_misc', array( $this, 'register_settings' ) );
 
 		do_action_ref_array( 'edd_activecampaign_after_setup_actions', array( &$this ) );
 	}
