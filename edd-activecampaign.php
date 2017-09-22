@@ -448,38 +448,38 @@ final class EDD_ActiveCampaign {
 	public function register_settings( $settings ) {
 		$activecampaign_settings = array(
 			array(
-				'id'   => 'eddactivecampaign_settings',
-				'name' => '<strong>' . __( 'ActiveCampaign Settings', 'edd-activecampaign' ) . '</strong>',
-				'desc' => '',
-				'type' => 'header',
+				'id'      => 'eddactivecampaign_settings',
+				'name'    => '<strong>' . __( 'ActiveCampaign Settings', 'edd-activecampaign' ) . '</strong>',
+				'desc'    => '',
+				'type'    => 'header',
 			),
 			array(
-				'id'   => 'eddactivecampaign_apiurl',
-				'name' => __( 'API URL', 'edd-activecampaign' ),
-				'desc' => __( 'Enter your ActiveCampaign API URL. It is located in the Settings --> API area of your ActiveCampaign account.', 'edd-activecampaign' ),
-				'type' => 'text',
-				'size' => 'regular',
+				'id'      => 'eddactivecampaign_apiurl',
+				'name'    => __( 'API URL', 'edd-activecampaign' ),
+				'desc'    => __( 'Enter your ActiveCampaign API URL. It is located in the Settings --> API area of your ActiveCampaign account.', 'edd-activecampaign' ),
+				'type'    => 'text',
+				'size'    => 'regular',
 			),
 			array(
-				'id'   => 'eddactivecampaign_api',
-				'name' => __( 'API Key', 'edd-activecampaign' ),
-				'desc' => __( 'Enter your ActiveCampaign API Key. It is located in the Settings --> API area of your ActiveCampaign account.', 'edd-activecampaign' ),
-				'type' => 'text',
-				'size' => 'regular',
+				'id'      => 'eddactivecampaign_api',
+				'name'    => __( 'API Key', 'edd-activecampaign' ),
+				'desc'    => __( 'Enter your ActiveCampaign API Key. It is located in the Settings --> API area of your ActiveCampaign account.', 'edd-activecampaign' ),
+				'type'    => 'text',
+				'size'    => 'regular',
 			),
 			array(
-				'id'   => 'eddactivecampaign_list',
-				'name' => __( 'List ID', 'edd-activecampaign' ),
-				'desc' => __( 'Enter your List ID. It will be in the form of a number.', 'edd-activecampaign' ),
-				'type' => 'text',
-				'size' => 'regular',
+				'id'      => 'eddactivecampaign_list',
+				'name'    => __( 'Choose a list', 'edd-activecampaign' ),
+				'desc'    => __( 'Select the list you wish to subscribe buyers to.', 'edd-activecampaign' ),
+				'type'    => 'select',
+				'options' => $this->get_lists()
 			),
 			array(
-				'id'   => 'eddactivecampaign_label',
-				'name' => __( 'Checkout Label', 'edd-activecampaign' ),
-				'desc' => __( 'This is the text shown next to the signup option', 'edd-activecampaign' ),
-				'type' => 'text',
-				'size' => 'regular',
+				'id'      => 'eddactivecampaign_label',
+				'name'    => __( 'Checkout Label', 'edd-activecampaign' ),
+				'desc'    => __( 'This is the text shown next to the signup option', 'edd-activecampaign' ),
+				'type'    => 'text',
+				'size'    => 'regular',
 			),
 		);
 
@@ -501,6 +501,47 @@ final class EDD_ActiveCampaign {
 	public function updater() {
 		if ( class_exists( 'EDD_License' ) ) {
 			$license = new EDD_License( $this->file, 'ActiveCampaign', $this->version, 'EDD Team', 'edd_activecampaign_license_key' );
+		}
+	}
+
+	/**
+	 * Retrieve the lists set up in ActiveCampaign.
+	 *
+	 * @since  1.1
+	 * @access public
+	 * @return array $lists ActiveCampaign Lists.
+	 */
+	public function get_lists() {
+		if ( ! edd_get_option( 'eddactivecampaign_apiurl', false ) || ! edd_get_option( 'eddactivecampaign_api', false ) ) {
+			return array();
+		}
+
+		// Load ActiveCampaign API
+		require_once( 'vendor/ActiveCampaign.class.php' );
+
+		$ac = new ActiveCampaign( edd_get_option( 'eddactivecampaign_apiurl' ), edd_get_option( 'eddactivecampaign_api' ) );
+
+		$lists = $ac->api( 'list/list', array( 'ids' => 'all' ) );
+
+		// var_dump($lists);
+
+		if ( (int) $lists->success ) {
+			// We need to cast the object to an array because ActiveCampaign returns invalid JSON.
+			$lists = (array) $lists;
+
+			$output = array();
+
+			foreach ( $lists as $key => $list ) {
+				if ( ! is_numeric( $key ) ) {
+					continue;
+				}
+
+				$output[ $list->id ] = $list->name;
+			}
+
+			return $output;
+		} else {
+			return array();
 		}
 	}
 }
