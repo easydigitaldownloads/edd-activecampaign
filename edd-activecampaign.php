@@ -324,6 +324,7 @@ final class EDD_ActiveCampaign {
 		/* Actions */
 		add_action( 'edd_checkout_before_gateway', array( $this, 'check_for_email_signup' ), 10, 2 );
 		add_action( 'edd_purchase_form_before_submit', array( $this, 'display_checkout_fields' ), 100 );
+		add_action( 'add_meta_boxes', array( $this, 'add_metabox' ) );
 
 		/* Filters */
 		add_filter( 'edd_settings_sections_extensions', array( $this, 'settings_section' ) );
@@ -542,6 +543,39 @@ final class EDD_ActiveCampaign {
 			return $output;
 		} else {
 			return array();
+		}
+	}
+
+	/**
+	 * Add metabox to Download edit screen.
+	 *
+	 * @since  1.1
+	 * @access public
+	 */
+	public function add_metabox() {
+		if ( current_user_can( 'edit_product', get_the_ID() ) ) {
+			add_meta_box( 'edd_activecampaign', 'ActiveCampaign', array( $this, 'render_metabox' ), 'download', 'side' );
+		}
+	}
+
+	/**
+	 * Render the metabox displayed on the Download edit screen.
+	 *
+	 * @since  1.1
+	 * @access public
+	 */
+	public function render_metabox() {
+		global $post;
+
+		echo '<p>' . __( 'Select the lists you wish buyers to be subscribed to when purchasing.', 'edd_activecampaign' ) . '</p>';
+
+		$checked = (array) get_post_meta( $post->ID, '_edd_activecampaign', true );
+
+		foreach ( $this->get_lists() as $list_id => $list_name ) {
+			echo '<label>';
+				echo '<input type="checkbox" name="_edd_activecampaign[]" value="' . esc_attr( $list_id ) . '"' . checked( true, in_array( $list_id, $checked ), false ) . '>';
+				echo '&nbsp;' . $list_name;
+			echo '</label><br/>';
 		}
 	}
 }
