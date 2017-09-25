@@ -329,6 +329,7 @@ final class EDD_ActiveCampaign {
 		/* Filters */
 		add_filter( 'edd_settings_sections_extensions', array( $this, 'settings_section' ) );
 		add_filter( 'edd_settings_extensions', array( $this, 'register_settings' ) );
+		add_filter( 'edd_metabox_fields_save', array( $this, 'save_metabox' ) );
 
 		do_action_ref_array( 'edd_activecampaign_after_setup_actions', array( &$this ) );
 	}
@@ -577,6 +578,22 @@ final class EDD_ActiveCampaign {
 				echo '&nbsp;' . $list_name;
 			echo '</label><br/>';
 		}
+	}
+
+	/**
+	 * Save metabox data.
+	 *
+	 * @since  1.1
+	 * @access public
+	 *
+	 * @param array $fields Metabox fields.
+	 *
+	 * @return array $fields.
+	 */
+	public function save_metabox( $fields ) {
+		$fields[] = '_edd_activecampaign';
+
+		return $fields;
 	}
 }
 
