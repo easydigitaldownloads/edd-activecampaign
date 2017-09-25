@@ -568,7 +568,7 @@ final class EDD_ActiveCampaign {
 	public function render_metabox() {
 		global $post;
 
-		echo '<p>' . __( 'Select the lists you wish buyers to be subscribed to when purchasing.', 'edd_activecampaign' ) . '</p>';
+		echo '<p>' . __( 'Select the lists you wish buyers to be subscribed to when purchasing.', 'edd-activecampaign' ) . '</p>';
 
 		$checked = (array) get_post_meta( $post->ID, '_edd_activecampaign', true );
 
