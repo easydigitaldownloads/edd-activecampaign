@@ -325,6 +325,7 @@ final class EDD_ActiveCampaign {
 		add_action( 'edd_checkout_before_gateway', array( $this, 'check_for_email_signup' ), 10, 2 );
 		add_action( 'edd_purchase_form_before_submit', array( $this, 'display_checkout_fields' ), 100 );
 		add_action( 'add_meta_boxes', array( $this, 'add_metabox' ) );
+		add_action( 'edd_complete_download_purchase', array( $this, 'completed_download_purchase_signup' ), 10, 3 );
 
 		/* Filters */
 		add_filter( 'edd_settings_sections_extensions', array( $this, 'settings_section' ) );
@@ -368,16 +369,20 @@ final class EDD_ActiveCampaign {
 	 *
 	 * @access public
 	 * @since  1.0
+	 * @since  1.1 - Added param $list
 	 *
 	 * @param string $email      Email address.
 	 * @param string $first_name First name.
 	 * @param string $last_name  Last name.
+	 * @param int    $list       List ID.
 	 *
 	 * @return bool
 	 */
-	public function subscribe_email( $email, $first_name = '', $last_name = '' ) {
+	public function subscribe_email( $email, $first_name = '', $last_name = '', $list = 0 ) {
 		if ( edd_get_option( 'eddactivecampaign_api' ) ) {
-			$list = edd_get_option( 'eddactivecampaign_list' );
+			if ( 0 == $list ) {
+				$list = edd_get_option( 'eddactivecampaign_list', false );
+			}
 
 			if ( ! $list ) {
 				return false;
@@ -389,14 +394,14 @@ final class EDD_ActiveCampaign {
 			$ac = new ActiveCampaign( edd_get_option( 'eddactivecampaign_apiurl' ), edd_get_option( 'eddactivecampaign_api' ) );
 
 			$subscriber = array(
-				"email"              => "$email",
-				"first_name"         => "$first_name",
-				"last_name"          => "$last_name",
-				"p[{$list_id}]"      => $list,
-				"status[{$list_id}]" => 1,
+				"email"           => "$email",
+				"first_name"      => "$first_name",
+				"last_name"       => "$last_name",
+				"p[{$list}]"      => $list,
+				"status[{$list}]" => 1,
 			);
 
-			$subscriber_add = $ac->api( "subscriber/add", $subscriber );
+			$ac->api( "contact/add", $subscriber );
 		}
 
 		return false;
@@ -594,6 +599,45 @@ final class EDD_ActiveCampaign {
 		$fields[] = '_edd_activecampaign';
 
 		return $fields;
+	}
+
+	/**
+	 * Check if a customer needs to be subscribed on completed purchase of specific products.
+	 *
+	 * @since  1.1
+	 * @access public
+	 *
+	 * @param int    $download_id   Download ID.
+	 * @param int    $payment_id    Payment ID.
+	 * @param string $download_type Download type (default/bundle).
+	 */
+	public function completed_download_purchase_signup( $download_id = 0, $payment_id = 0, $download_type = 'default' ) {
+		$user_info = edd_get_payment_meta_user_info( $payment_id );
+		$lists     = get_post_meta( $download_id, '_edd_activecampaign', true );
+
+
+		if ( 'bundle' == $download_type ) {
+			$downloads = edd_get_bundled_products( $download_id );
+
+			if ( $downloads ) {
+				foreach( $downloads as $id ) {
+					$download_lists = get_post_meta( $id, '_edd_activecampaign', true );
+					if ( is_array( $download_lists ) ) {
+						$lists = array_merge( $download_lists, (array) $lists );
+					}
+				}
+			}
+		}
+
+		if ( empty ( $lists ) ) {
+			return;
+		}
+
+		$lists = array_unique( $lists );
+
+		foreach ( $lists as $list ) {
+			$this->subscribe_email( $user_info['email'], $user_info['first_name'], $user_info['last_name'], $list );
+		}
 	}
 }
 
