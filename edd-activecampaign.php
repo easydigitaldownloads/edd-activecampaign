@@ -5,12 +5,12 @@
  * Description: Include a ActiveCampaign signup option with your Easy Digital Downloads checkout.
  * Author: Easy Digital Downloads
  * Author URI: https://easydigitaldownloads.com
- * Version: 1.0
+ * Version: 1.1
  * Text Domain: edd-activecampaign
  * Domain Path: languages
  *
  * @package EDD_ActiveCampaign
- * @version 1.0
+ * @version 1.1
  */
 
 // Exit if accessed directly.
@@ -97,6 +97,8 @@ final class EDD_ActiveCampaign {
 	 * @since  1.1
 	 */
 	private function setup_globals() {
+		$this->version = '1.1';
+
 		// File Path and URL Information
 		$this->file        = __FILE__;
 		$this->basename    = apply_filters( 'edd_activecampaign_plugin_basenname', plugin_basename( $this->file ) );
