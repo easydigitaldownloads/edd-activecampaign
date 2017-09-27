@@ -1,0 +1,93 @@
+# Copyright (C) 2017 Easy Digital Downloads
+# This file is distributed under the same license as the Easy Digital Downloads - ActiveCampaign package.
+msgid ""
+msgstr ""
+"Project-Id-Version: Easy Digital Downloads - ActiveCampaign 1.0\n"
+"Report-Msgid-Bugs-To: https://easydigitaldownloads.com/support/\n"
+"POT-Creation-Date: 2017-09-27 14:26:22+00:00\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"PO-Revision-Date: 2017-MO-DA HO:MI+ZONE\n"
+"Last-Translator: Easy Digital Downloads <support@easydigitaldownloads.com>\n"
+"Language-Team: Easy Digital Downloads <support@easydigitaldownloads.com>\n"
+"X-Generator: grunt-wp-i18n 0.5.4\n"
+"X-Poedit-KeywordsList: "
+"__;_e;_x:1,2c;_ex:1,2c;_n:1,2;_nx:1,2,4c;_n_noop:1,2;_nx_noop:1,2,3c;esc_"
+"attr__;esc_html__;esc_attr_e;esc_html_e;esc_attr_x:1,2c;esc_html_x:1,2c;\n"
+"Language: en_US\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Poedit-Country: United States\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+"X-Poedit-Basepath: ../\n"
+"X-Poedit-SearchPath-0: .\n"
+"X-Poedit-Bookmarks: \n"
+"X-Textdomain-Support: yes\n"
+
+#: edd-activecampaign.php:124 edd-activecampaign.php:136
+msgid "Cheatin&#8217; huh?"
+msgstr ""
+
+#: edd-activecampaign.php:346
+msgid ""
+"You must install %sEasy Digital Downloads%s for the ActiveCampaign Add-On "
+"to work."
+msgstr ""
+
+#: edd-activecampaign.php:422
+msgid "Sign up for our mailing list"
+msgstr ""
+
+#: edd-activecampaign.php:440
+msgid "ActiveCampaign"
+msgstr ""
+
+#: edd-activecampaign.php:459
+msgid "ActiveCampaign Settings"
+msgstr ""
+
+#: edd-activecampaign.php:465
+msgid "API URL"
+msgstr ""
+
+#: edd-activecampaign.php:466
+msgid ""
+"Enter your ActiveCampaign API URL. It is located in the Settings --> API "
+"area of your ActiveCampaign account."
+msgstr ""
+
+#: edd-activecampaign.php:472
+msgid "API Key"
+msgstr ""
+
+#: edd-activecampaign.php:473
+msgid ""
+"Enter your ActiveCampaign API Key. It is located in the Settings --> API "
+"area of your ActiveCampaign account."
+msgstr ""
+
+#: edd-activecampaign.php:479
+msgid "Choose a list"
+msgstr ""
+
+#: edd-activecampaign.php:480
+msgid "Select the list you wish to subscribe buyers to."
+msgstr ""
+
+#: edd-activecampaign.php:486
+msgid "Checkout Label"
+msgstr ""
+
+#: edd-activecampaign.php:487
+msgid "This is the text shown next to the signup option"
+msgstr ""
+
+#: edd-activecampaign.php:576
+msgid "Select the lists you wish buyers to be subscribed to when purchasing."
+msgstr ""
+
+#. Description of the plugin/theme
+msgid ""
+"Include a ActiveCampaign signup option with your Easy Digital Downloads "
+"checkout."
+msgstr ""
