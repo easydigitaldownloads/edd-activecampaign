@@ -324,10 +324,13 @@ final class EDD_ActiveCampaign {
 		/* Actions */
 		add_action( 'edd_checkout_before_gateway', array( $this, 'check_for_email_signup' ), 10, 2 );
 		add_action( 'edd_purchase_form_before_submit', array( $this, 'display_checkout_fields' ), 100 );
+		add_action( 'add_meta_boxes', array( $this, 'add_metabox' ) );
+		add_action( 'edd_complete_download_purchase', array( $this, 'completed_download_purchase_signup' ), 10, 3 );
 
 		/* Filters */
 		add_filter( 'edd_settings_sections_extensions', array( $this, 'settings_section' ) );
 		add_filter( 'edd_settings_extensions', array( $this, 'register_settings' ) );
+		add_filter( 'edd_metabox_fields_save', array( $this, 'save_metabox' ) );
 
 		do_action_ref_array( 'edd_activecampaign_after_setup_actions', array( &$this ) );
 	}
@@ -366,16 +369,20 @@ final class EDD_ActiveCampaign {
 	 *
 	 * @access public
 	 * @since  1.0
+	 * @since  1.1 - Added param $list
 	 *
 	 * @param string $email      Email address.
 	 * @param string $first_name First name.
 	 * @param string $last_name  Last name.
+	 * @param int    $list       List ID.
 	 *
 	 * @return bool
 	 */
-	public function subscribe_email( $email, $first_name = '', $last_name = '' ) {
+	public function subscribe_email( $email, $first_name = '', $last_name = '', $list = 0 ) {
 		if ( edd_get_option( 'eddactivecampaign_api' ) ) {
-			$list = edd_get_option( 'eddactivecampaign_list' );
+			if ( 0 == $list ) {
+				$list = edd_get_option( 'eddactivecampaign_list', false );
+			}
 
 			if ( ! $list ) {
 				return false;
@@ -387,14 +394,14 @@ final class EDD_ActiveCampaign {
 			$ac = new ActiveCampaign( edd_get_option( 'eddactivecampaign_apiurl' ), edd_get_option( 'eddactivecampaign_api' ) );
 
 			$subscriber = array(
-				"email"              => "$email",
-				"first_name"         => "$first_name",
-				"last_name"          => "$last_name",
-				"p[{$list_id}]"      => $list,
-				"status[{$list_id}]" => 1,
+				"email"           => "$email",
+				"first_name"      => "$first_name",
+				"last_name"       => "$last_name",
+				"p[{$list}]"      => $list,
+				"status[{$list}]" => 1,
 			);
 
-			$subscriber_add = $ac->api( "subscriber/add", $subscriber );
+			$ac->api( "contact/add", $subscriber );
 		}
 
 		return false;
@@ -448,38 +455,38 @@ final class EDD_ActiveCampaign {
 	public function register_settings( $settings ) {
 		$activecampaign_settings = array(
 			array(
-				'id'   => 'eddactivecampaign_settings',
-				'name' => '<strong>' . __( 'ActiveCampaign Settings', 'edd-activecampaign' ) . '</strong>',
-				'desc' => '',
-				'type' => 'header',
+				'id'      => 'eddactivecampaign_settings',
+				'name'    => '<strong>' . __( 'ActiveCampaign Settings', 'edd-activecampaign' ) . '</strong>',
+				'desc'    => '',
+				'type'    => 'header',
 			),
 			array(
-				'id'   => 'eddactivecampaign_apiurl',
-				'name' => __( 'API URL', 'edd-activecampaign' ),
-				'desc' => __( 'Enter your ActiveCampaign API URL. It is located in the Settings --> API area of your ActiveCampaign account.', 'edd-activecampaign' ),
-				'type' => 'text',
-				'size' => 'regular',
+				'id'      => 'eddactivecampaign_apiurl',
+				'name'    => __( 'API URL', 'edd-activecampaign' ),
+				'desc'    => __( 'Enter your ActiveCampaign API URL. It is located in the Settings --> API area of your ActiveCampaign account.', 'edd-activecampaign' ),
+				'type'    => 'text',
+				'size'    => 'regular',
 			),
 			array(
-				'id'   => 'eddactivecampaign_api',
-				'name' => __( 'API Key', 'edd-activecampaign' ),
-				'desc' => __( 'Enter your ActiveCampaign API Key. It is located in the Settings --> API area of your ActiveCampaign account.', 'edd-activecampaign' ),
-				'type' => 'text',
-				'size' => 'regular',
+				'id'      => 'eddactivecampaign_api',
+				'name'    => __( 'API Key', 'edd-activecampaign' ),
+				'desc'    => __( 'Enter your ActiveCampaign API Key. It is located in the Settings --> API area of your ActiveCampaign account.', 'edd-activecampaign' ),
+				'type'    => 'text',
+				'size'    => 'regular',
 			),
 			array(
-				'id'   => 'eddactivecampaign_list',
-				'name' => __( 'List ID', 'edd-activecampaign' ),
-				'desc' => __( 'Enter your List ID. It will be in the form of a number.', 'edd-activecampaign' ),
-				'type' => 'text',
-				'size' => 'regular',
+				'id'      => 'eddactivecampaign_list',
+				'name'    => __( 'Choose a list', 'edd-activecampaign' ),
+				'desc'    => __( 'Select the list you wish to subscribe buyers to.', 'edd-activecampaign' ),
+				'type'    => 'select',
+				'options' => $this->get_lists()
 			),
 			array(
-				'id'   => 'eddactivecampaign_label',
-				'name' => __( 'Checkout Label', 'edd-activecampaign' ),
-				'desc' => __( 'This is the text shown next to the signup option', 'edd-activecampaign' ),
-				'type' => 'text',
-				'size' => 'regular',
+				'id'      => 'eddactivecampaign_label',
+				'name'    => __( 'Checkout Label', 'edd-activecampaign' ),
+				'desc'    => __( 'This is the text shown next to the signup option', 'edd-activecampaign' ),
+				'type'    => 'text',
+				'size'    => 'regular',
 			),
 		);
 
@@ -501,6 +508,135 @@ final class EDD_ActiveCampaign {
 	public function updater() {
 		if ( class_exists( 'EDD_License' ) ) {
 			$license = new EDD_License( $this->file, 'ActiveCampaign', $this->version, 'EDD Team', 'edd_activecampaign_license_key' );
+		}
+	}
+
+	/**
+	 * Retrieve the lists set up in ActiveCampaign.
+	 *
+	 * @since  1.1
+	 * @access public
+	 * @return array $lists ActiveCampaign Lists.
+	 */
+	public function get_lists() {
+		if ( ! edd_get_option( 'eddactivecampaign_apiurl', false ) || ! edd_get_option( 'eddactivecampaign_api', false ) ) {
+			return array();
+		}
+
+		// Load ActiveCampaign API
+		require_once( 'vendor/ActiveCampaign.class.php' );
+
+		$ac = new ActiveCampaign( edd_get_option( 'eddactivecampaign_apiurl' ), edd_get_option( 'eddactivecampaign_api' ) );
+
+		$lists = $ac->api( 'list/list', array( 'ids' => 'all' ) );
+
+		// var_dump($lists);
+
+		if ( (int) $lists->success ) {
+			// We need to cast the object to an array because ActiveCampaign returns invalid JSON.
+			$lists = (array) $lists;
+
+			$output = array();
+
+			foreach ( $lists as $key => $list ) {
+				if ( ! is_numeric( $key ) ) {
+					continue;
+				}
+
+				$output[ $list->id ] = $list->name;
+			}
+
+			return $output;
+		} else {
+			return array();
+		}
+	}
+
+	/**
+	 * Add metabox to Download edit screen.
+	 *
+	 * @since  1.1
+	 * @access public
+	 */
+	public function add_metabox() {
+		if ( current_user_can( 'edit_product', get_the_ID() ) ) {
+			add_meta_box( 'edd_activecampaign', 'ActiveCampaign', array( $this, 'render_metabox' ), 'download', 'side' );
+		}
+	}
+
+	/**
+	 * Render the metabox displayed on the Download edit screen.
+	 *
+	 * @since  1.1
+	 * @access public
+	 */
+	public function render_metabox() {
+		global $post;
+
+		echo '<p>' . __( 'Select the lists you wish buyers to be subscribed to when purchasing.', 'edd-activecampaign' ) . '</p>';
+
+		$checked = (array) get_post_meta( $post->ID, '_edd_activecampaign', true );
+
+		foreach ( $this->get_lists() as $list_id => $list_name ) {
+			echo '<label>';
+				echo '<input type="checkbox" name="_edd_activecampaign[]" value="' . esc_attr( $list_id ) . '"' . checked( true, in_array( $list_id, $checked ), false ) . '>';
+				echo '&nbsp;' . $list_name;
+			echo '</label><br/>';
+		}
+	}
+
+	/**
+	 * Save metabox data.
+	 *
+	 * @since  1.1
+	 * @access public
+	 *
+	 * @param array $fields Metabox fields.
+	 *
+	 * @return array $fields.
+	 */
+	public function save_metabox( $fields ) {
+		$fields[] = '_edd_activecampaign';
+
+		return $fields;
+	}
+
+	/**
+	 * Check if a customer needs to be subscribed on completed purchase of specific products.
+	 *
+	 * @since  1.1
+	 * @access public
+	 *
+	 * @param int    $download_id   Download ID.
+	 * @param int    $payment_id    Payment ID.
+	 * @param string $download_type Download type (default/bundle).
+	 */
+	public function completed_download_purchase_signup( $download_id = 0, $payment_id = 0, $download_type = 'default' ) {
+		$user_info = edd_get_payment_meta_user_info( $payment_id );
+		$lists     = get_post_meta( $download_id, '_edd_activecampaign', true );
+
+
+		if ( 'bundle' == $download_type ) {
+			$downloads = edd_get_bundled_products( $download_id );
+
+			if ( $downloads ) {
+				foreach( $downloads as $id ) {
+					$download_lists = get_post_meta( $id, '_edd_activecampaign', true );
+					if ( is_array( $download_lists ) ) {
+						$lists = array_merge( $download_lists, (array) $lists );
+					}
+				}
+			}
+		}
+
+		if ( empty ( $lists ) ) {
+			return;
+		}
+
+		$lists = array_unique( $lists );
+
+		foreach ( $lists as $list ) {
+			$this->subscribe_email( $user_info['email'], $user_info['first_name'], $user_info['last_name'], $list );
 		}
 	}
 }
