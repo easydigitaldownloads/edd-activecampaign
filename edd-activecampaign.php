@@ -526,9 +526,9 @@ final class EDD_ActiveCampaign {
 		}
 
 		// Load ActiveCampaign API
-        if ( ! class_exists( 'ActiveCampaign' ) ) {
-	        require_once( 'vendor/ActiveCampaign.class.php' );
-        }
+		if ( ! class_exists( 'ActiveCampaign' ) ) {
+			require_once( 'vendor/ActiveCampaign.class.php' );
+		}
 
 		$ac = new ActiveCampaign( edd_get_option( 'eddactivecampaign_apiurl' ), edd_get_option( 'eddactivecampaign_api' ) );
 
