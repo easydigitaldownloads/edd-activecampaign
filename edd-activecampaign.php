@@ -465,14 +465,14 @@ final class EDD_ActiveCampaign {
 			array(
 				'id'      => 'eddactivecampaign_apiurl',
 				'name'    => __( 'API URL', 'edd-activecampaign' ),
-				'desc'    => __( 'Enter your ActiveCampaign API URL. It is located in the Settings --> API area of your ActiveCampaign account.', 'edd-activecampaign' ),
+				'desc'    => __( 'Enter your ActiveCampaign API URL. It is located in the Settings --> Developer area of your ActiveCampaign account.', 'edd-activecampaign' ),
 				'type'    => 'text',
 				'size'    => 'regular',
 			),
 			array(
 				'id'      => 'eddactivecampaign_api',
 				'name'    => __( 'API Key', 'edd-activecampaign' ),
-				'desc'    => __( 'Enter your ActiveCampaign API Key. It is located in the Settings --> API area of your ActiveCampaign account.', 'edd-activecampaign' ),
+				'desc'    => __( 'Enter your ActiveCampaign API Key. It is located in the Settings --> Developer area of your ActiveCampaign account.', 'edd-activecampaign' ),
 				'type'    => 'text',
 				'size'    => 'regular',
 			),
