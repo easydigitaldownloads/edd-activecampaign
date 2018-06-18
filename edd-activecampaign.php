@@ -324,11 +324,10 @@ final class EDD_ActiveCampaign {
 		do_action_ref_array( 'edd_activecampaign_before_setup_actions', array( &$this ) );
 
 		/* Actions */
-		add_action( 'edd_checkout_before_gateway', array( $this, 'check_for_email_signup' ), 10, 2 );
 		add_action( 'edd_purchase_form_before_submit', array( $this, 'display_checkout_fields' ), 100 );
+		add_action( 'edd_insert_payment', array( $this, 'check_for_email_signup' ), 10, 2 );
+		add_action( 'edd_complete_download_purchase', array( $this, 'completed_download_purchase_signup' ), 10, 3 );		
 		add_action( 'add_meta_boxes', array( $this, 'add_metabox' ) );
-		add_action( 'edd_complete_download_purchase', array( $this, 'completed_download_purchase_signup' ), 10, 3 );
-
 		/* Filters */
 		add_filter( 'edd_settings_sections_extensions', array( $this, 'settings_section' ) );
 		add_filter( 'edd_settings_extensions', array( $this, 'register_settings' ) );
@@ -359,10 +358,11 @@ final class EDD_ActiveCampaign {
 	 *
 	 * @return void
 	 */
-	public function check_for_email_signup( $data, $user_info ) {
-		if ( $data['eddactivecampaign_activecampaign_signup'] ) {
-			$email = $user_info['email'];
-			$this->subscribe_email( $email, $user_info['first_name'], $user_info['last_name'] );
+	public function check_for_email_signup( $payment_id = 0, $payment_data = array() ) {
+		// Check for global newsletter
+		if( isset( $_POST['eddactivecampaign_activecampaign_signup'] ) ) {
+			$payment = edd_get_payment( $payment_id );
+			$payment->add_meta( 'eddactivecampaign_activecampaign_signup', '1' );
 		}
 	}
 
@@ -382,13 +382,6 @@ final class EDD_ActiveCampaign {
 	 */
 	public function subscribe_email( $email, $first_name = '', $last_name = '', $list = 0 ) {
 		if ( edd_get_option( 'eddactivecampaign_api' ) ) {
-			if ( 0 == $list ) {
-				$list = edd_get_option( 'eddactivecampaign_list', false );
-			}
-
-			if ( ! $list ) {
-				return false;
-			}
 
 			// Load ActiveCampaign API
 			require_once( 'vendor/ActiveCampaign.class.php' );
@@ -410,21 +403,43 @@ final class EDD_ActiveCampaign {
 	}
 
 	/**
+	* Determines if the checkout signup option should be displayed
+	*/
+	private static function _show_checkout_signup() {
+		$show = edd_get_option( 'eddactivecampaign_checkout' );
+		return ! empty( $show );
+	}
+
+	/**
 	 * Display checkout fields.
 	 *
 	 * @access public
 	 * @since  1.0
 	 */
 	public function display_checkout_fields() {
-		global $edd_options;
-		ob_start();
-		if ( isset( $edd_options['eddactivecampaign_api'] ) && strlen( trim( $edd_options['eddactivecampaign_api'] ) ) > 0 ) { ?>
-			<p>
-				<input name="eddactivecampaign_activecampaign_signup" id="eddactivecampaign_activecampaign_signup" type="checkbox" checked="checked" />
-				<label for="eddactivecampaign_activecampaign_signup"><?php echo isset( $edd_options['eddactivecampaign_label'] ) ? $edd_options['eddactivecampaign_label'] : __( 'Sign up for our mailing list', 'edd-activecampaign' ); ?></label>
-			</p>
-			<?php
+		if( ! self::_show_checkout_signup() ) {
+			return;
 		}
+
+		global $edd_options;
+
+		$checked = edd_get_option( 'eddactivecampaign_checkout_default', false );
+		$label = edd_get_option( 'eddactivecampaign_label' );
+
+		if( ! empty( $label ) ) {
+			$checkout_label = trim( $label );
+		} else {
+			$checkout_label = __( 'Signup for the newsletter', 'edd-activecampaign' );
+		}
+
+		ob_start(); ?>
+		<fieldset id="edd_activecampaign">
+			<p>
+				<input name="eddactivecampaign_activecampaign_signup" id="eddactivecampaign_activecampaign_signup" type="checkbox" <?php checked( '1', $checked, true ); ?>/>
+				<label for="eddactivecampaign_activecampaign_signup"><?php echo $checkout_label; ?></label>
+			</p>
+		</fieldset>
+			<?php
 		echo ob_get_clean();
 	}
 
@@ -475,6 +490,18 @@ final class EDD_ActiveCampaign {
 				'desc'    => __( 'Enter your ActiveCampaign API Key. It is located in the Settings --> Developer area of your ActiveCampaign account.', 'edd-activecampaign' ),
 				'type'    => 'text',
 				'size'    => 'regular',
+			),
+			array(
+				'id'      => 'eddactivecampaign_checkout',
+				'name'    => __( 'Show Signup on Checkout', 'edd-activecampaign' ),
+				'desc'    => __( 'Allow customers to signup for the list selected below during checkout?', 'edd-activecampaign' ),
+				'type'    => 'checkbox'
+			),
+			array(
+				'id'      => 'eddactivecampaign_checkout_default',
+				'name'    => __( 'Signup Checked by Default', 'edd-activecampaign' ),
+				'desc'    => __( 'Should the newsletter signup checkbox shown during checkout be checked by default?', 'edd-activecampaign' ),
+				'type'    => 'checkbox'
 			),
 			array(
 				'id'      => 'eddactivecampaign_list',
@@ -616,31 +643,54 @@ final class EDD_ActiveCampaign {
 	 * @param string $download_type Download type (default/bundle).
 	 */
 	public function completed_download_purchase_signup( $download_id = 0, $payment_id = 0, $download_type = 'default' ) {
-		$user_info = edd_get_payment_meta_user_info( $payment_id );
-		$lists     = get_post_meta( $download_id, '_edd_activecampaign', true );
+		// Get the Payment object
+		$payment = edd_get_payment( $payment_id );
+		$meta = $payment->get_meta( 'eddactivecampaign_activecampaign_signup', true );
+		
+		if ( $meta ) {
+			//User has agreed to signup at checkout
+			$user_info = edd_get_payment_meta_user_info( $payment_id );
+			$lists     = get_post_meta( $download_id, '_edd_activecampaign', true );
 
+			if ( 'bundle' == $download_type ) {
+				$downloads = edd_get_bundled_products( $download_id );
 
-		if ( 'bundle' == $download_type ) {
-			$downloads = edd_get_bundled_products( $download_id );
-
-			if ( $downloads ) {
-				foreach( $downloads as $id ) {
-					$download_lists = get_post_meta( $id, '_edd_activecampaign', true );
-					if ( is_array( $download_lists ) ) {
-						$lists = array_merge( $download_lists, (array) $lists );
+				if ( $downloads ) {
+					foreach( $downloads as $id ) {
+						$download_lists = get_post_meta( $id, '_edd_activecampaign', true );
+						if ( is_array( $download_lists ) ) {
+							$lists = array_merge( $download_lists, (array) $lists );
+						}
 					}
 				}
 			}
-		}
 
-		if ( empty ( $lists ) ) {
-			return;
-		}
+			if ( empty ( $lists ) ) {
+				if( function_exists( 'edd_debug_log' ) ) {
+					edd_debug_log( 'ActiveCampaign Debug - List Check. No Download list ID predefined, attempting to load site default.' );
+				}
+				// No Download list set so return global list ID
+				$list_id = edd_get_option( 'eddactivecampaign_list', false );
+				if( ! $list_id ) {
+					if( function_exists( 'edd_debug_log' ) ) {
+						edd_debug_log( 'ActiveCampaign Debug - List Check. No global site list ID defined, exiting.' );
+					}
+					return false;
+				}
 
-		$lists = array_unique( $lists );
+				$this->subscribe_email( $user_info['email'], $user_info['first_name'], $user_info['last_name'], $list_id );
 
-		foreach ( $lists as $list ) {
-			$this->subscribe_email( $user_info['email'], $user_info['first_name'], $user_info['last_name'], $list );
+				return;
+			}
+
+			$lists = array_unique( $lists );
+
+			foreach ( $lists as $list ) {
+				$this->subscribe_email( $user_info['email'], $user_info['first_name'], $user_info['last_name'], $list );
+			}
+
+			// Cleanup after ourselves
+			$payment->delete_meta( 'eddactivecampaign_activecampaign_signup' );
 		}
 	}
 }
