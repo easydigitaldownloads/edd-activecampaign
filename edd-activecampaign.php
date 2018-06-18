@@ -646,7 +646,7 @@ final class EDD_ActiveCampaign {
 		// Get the Payment object
 		$payment = edd_get_payment( $payment_id );
 		$meta = $payment->get_meta( 'eddactivecampaign_activecampaign_signup', true );
-		
+
 		if ( $meta ) {
 			//User has agreed to signup at checkout
 			$user_info = edd_get_payment_meta_user_info( $payment_id );
@@ -669,6 +669,7 @@ final class EDD_ActiveCampaign {
 				if( function_exists( 'edd_debug_log' ) ) {
 					edd_debug_log( 'ActiveCampaign Debug - List Check. No Download list ID predefined, attempting to load site default.' );
 				}
+
 				// No Download list set so return global list ID
 				$list_id = edd_get_option( 'eddactivecampaign_list', false );
 				if( ! $list_id ) {
