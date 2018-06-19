@@ -5,7 +5,7 @@
  * Description: Include a ActiveCampaign signup option with your Easy Digital Downloads checkout.
  * Author: Easy Digital Downloads
  * Author URI: https://easydigitaldownloads.com
- * Version: 1.1
+ * Version: 1.1.1
  * Text Domain: edd-activecampaign
  * Domain Path: languages
  *
@@ -97,7 +97,7 @@ final class EDD_ActiveCampaign {
 	 * @since  1.1
 	 */
 	private function setup_globals() {
-		$this->version = '1.1';
+		$this->version = '1.1.1';
 
 		// File Path and URL Information
 		$this->file        = __FILE__;
@@ -326,7 +326,7 @@ final class EDD_ActiveCampaign {
 		/* Actions */
 		add_action( 'edd_purchase_form_before_submit', array( $this, 'display_checkout_fields' ), 100 );
 		add_action( 'edd_insert_payment', array( $this, 'check_for_email_signup' ), 10, 2 );
-		add_action( 'edd_complete_download_purchase', array( $this, 'completed_download_purchase_signup' ), 10, 3 );		
+		add_action( 'edd_complete_download_purchase', array( $this, 'completed_download_purchase_signup' ), 10, 3 );
 		add_action( 'add_meta_boxes', array( $this, 'add_metabox' ) );
 		/* Filters */
 		add_filter( 'edd_settings_sections_extensions', array( $this, 'settings_section' ) );
