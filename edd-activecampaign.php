@@ -383,8 +383,10 @@ final class EDD_ActiveCampaign {
 	public function subscribe_email( $email, $first_name = '', $last_name = '', $list = 0 ) {
 		if ( edd_get_option( 'eddactivecampaign_api' ) ) {
 
-			// Load ActiveCampaign API
-			require_once( 'vendor/ActiveCampaign.class.php' );
+			// Load ActiveCampaign API.
+			if ( ! class_exists( 'ActiveCampaign' ) ) {
+				require_once( 'vendor/ActiveCampaign.class.php' );
+			}
 
 			$ac = new ActiveCampaign( edd_get_option( 'eddactivecampaign_apiurl' ), edd_get_option( 'eddactivecampaign_api' ) );
 
