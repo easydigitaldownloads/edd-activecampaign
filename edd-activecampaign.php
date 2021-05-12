@@ -146,7 +146,7 @@ final class EDD_ActiveCampaign {
 	 *
 	 * @param string $key Variable name.
 	 *
-	 * @return void
+	 * @return bool
 	 */
 	public function __isset( $key ) {
 		return isset( $this->data[ $key ] );
@@ -198,23 +198,6 @@ final class EDD_ActiveCampaign {
 	}
 
 	/**
-	 * Magic method to prevent notices and errors from invalid method calls.
-	 *
-	 * @access public
-	 * @since  1.1
-	 *
-	 * @param string $name
-	 * @param array  $args
-	 *
-	 * @return void
-	 */
-	public function __call( $name = '', $args = array() ) {
-		unset( $name, $args );
-
-		return null;
-	}
-
-	/**
 	 * Reset the instance of the class.
 	 *
 	 * @access public
@@ -238,7 +221,7 @@ final class EDD_ActiveCampaign {
 	public function init() {
 		do_action( 'edd_activecampaign_before_init' );
 
-		$this->load_textdomain();
+		$this->load_plugin_textdomain();
 
 		do_action( 'edd_activecampaign_after_init' );
 	}
