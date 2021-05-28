@@ -1,10 +1,10 @@
 <?php
 /**
  * Plugin Name: Easy Digital Downloads - ActiveCampaign
- * Plugin URL: http://easydigitaldownloads.com/extension/activecampaign
- * Description: Include a ActiveCampaign signup option with your Easy Digital Downloads checkout.
- * Author: Easy Digital Downloads
- * Author URI: https://easydigitaldownloads.com
+ * Plugin URI: https://easydigitaldownloads.com/downloads/active-campaign/
+ * Description: Include an ActiveCampaign signup option with your Easy Digital Downloads checkout.
+ * Author: Sandhills Development, LLC
+ * Author URI: https://sandhillsdev.com
  * Version: 1.1.1
  * Text Domain: edd-activecampaign
  * Domain Path: languages
@@ -336,16 +336,20 @@ final class EDD_ActiveCampaign {
 	 * @access public
 	 * @since  1.0
 	 *
-	 * @param array $data      Checkout data.
-	 * @param array $user_info User details.
+	 * @param int   $payment_id   The order ID.
+	 * @param array $payment_data The details of the current order.
 	 *
 	 * @return void
 	 */
 	public function check_for_email_signup( $payment_id = 0, $payment_data = array() ) {
-		// Check for global newsletter
-		if( isset( $_POST['eddactivecampaign_activecampaign_signup'] ) ) {
-			$payment = edd_get_payment( $payment_id );
+		// Check for global newsletter.
+		if ( isset( $_POST['eddactivecampaign_activecampaign_signup'] ) ) {
 			$payment->add_meta( 'eddactivecampaign_activecampaign_signup', '1' );
+			edd_debug_log( 'ActiveCampaign Debug - User signed up for email newsletters.' );
+
+			$payment = edd_get_payment( $payment_id );
+		} else {
+			edd_debug_log( 'ActiveCampaign Debug - User opted out of email newsletters.' );
 		}
 	}
 
@@ -521,7 +525,7 @@ final class EDD_ActiveCampaign {
 	 */
 	public function updater() {
 		if ( class_exists( 'EDD_License' ) ) {
-			$license = new EDD_License( $this->file, 'ActiveCampaign', $this->version, 'EDD Team', 'edd_activecampaign_license_key' );
+			$license = new EDD_License( $this->file, 'ActiveCampaign', $this->version, 'Sandhills Development, LLC', 'edd_activecampaign_license_key', null, 22583 );
 		}
 	}
 
@@ -636,7 +640,7 @@ final class EDD_ActiveCampaign {
 			//User has agreed to signup at checkout
 			$user_info = edd_get_payment_meta_user_info( $payment_id );
 			$lists     = get_post_meta( $download_id, '_edd_activecampaign', true );
-
+			edd_debug_log( 'ActiveCampaign Debug - Beginning to process list signup.' );
 			if ( 'bundle' == $download_type ) {
 				$downloads = edd_get_bundled_products( $download_id );
 
