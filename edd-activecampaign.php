@@ -345,11 +345,11 @@ final class EDD_ActiveCampaign {
 		// Check for global newsletter.
 		if ( isset( $_POST['eddactivecampaign_activecampaign_signup'] ) ) {
 			$payment->add_meta( 'eddactivecampaign_activecampaign_signup', '1' );
-			edd_debug_log( 'ActiveCampaign Debug - User signed up for email newsletters.' );
+			edd_debug_log( 'ActiveCampaign Debug - User subscribed to email newsletters.' );
 
 			$payment = edd_get_payment( $payment_id );
 		} else {
-			edd_debug_log( 'ActiveCampaign Debug - User opted out of email newsletters.' );
+			edd_debug_log( 'ActiveCampaign Debug - User did not subscribe to email newsletters.' );
 		}
 	}
 
