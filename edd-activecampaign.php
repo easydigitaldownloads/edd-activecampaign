@@ -640,7 +640,7 @@ final class EDD_ActiveCampaign {
 			//User has agreed to signup at checkout
 			$user_info = edd_get_payment_meta_user_info( $payment_id );
 			$lists     = get_post_meta( $download_id, '_edd_activecampaign', true );
-			edd_debug_log( 'ActiveCampaign Debug - Order ' . $payment_id . ': Beginning to process list signup. Order: ' );
+			edd_debug_log( 'ActiveCampaign Debug - Order ' . $payment_id . ': Beginning to process list signup.' );
 			if ( 'bundle' == $download_type ) {
 				$downloads = edd_get_bundled_products( $download_id );
 
