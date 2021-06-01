@@ -347,9 +347,9 @@ final class EDD_ActiveCampaign {
 			$payment = edd_get_payment( $payment_id );
 			$payment->add_meta( 'eddactivecampaign_activecampaign_signup', '1' );
 
-			edd_debug_log( 'ActiveCampaign Debug - User subscribed to email newsletters.' );
+			edd_debug_log( 'ActiveCampaign Debug - Order ' . $payment_id . ': User subscribed to email newsletters.' );
 		} else {
-			edd_debug_log( 'ActiveCampaign Debug - User did not subscribe to email newsletters.' );
+			edd_debug_log( 'ActiveCampaign Debug - Order ' . $payment_id . ': User did not subscribe to email newsletters.' );
 		}
 	}
 
@@ -640,7 +640,7 @@ final class EDD_ActiveCampaign {
 			//User has agreed to signup at checkout
 			$user_info = edd_get_payment_meta_user_info( $payment_id );
 			$lists     = get_post_meta( $download_id, '_edd_activecampaign', true );
-			edd_debug_log( 'ActiveCampaign Debug - Beginning to process list signup.' );
+			edd_debug_log( 'ActiveCampaign Debug - Order ' . $payment_id . ': Beginning to process list signup. Order: ' );
 			if ( 'bundle' == $download_type ) {
 				$downloads = edd_get_bundled_products( $download_id );
 
