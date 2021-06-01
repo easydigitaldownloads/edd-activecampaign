@@ -344,8 +344,8 @@ final class EDD_ActiveCampaign {
 	public function check_for_email_signup( $payment_id = 0, $payment_data = array() ) {
 		// Check for global newsletter.
 		if ( isset( $_POST['eddactivecampaign_activecampaign_signup'] ) ) {
-			$payment->add_meta( 'eddactivecampaign_activecampaign_signup', '1' );
 			$payment = edd_get_payment( $payment_id );
+			$payment->add_meta( 'eddactivecampaign_activecampaign_signup', '1' );
 
 			edd_debug_log( 'ActiveCampaign Debug - User subscribed to email newsletters.' );
 		} else {
