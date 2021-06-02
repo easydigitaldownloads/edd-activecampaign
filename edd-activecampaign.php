@@ -309,7 +309,7 @@ final class EDD_ActiveCampaign {
 		/* Actions */
 		add_action( 'edd_purchase_form_before_submit', array( $this, 'display_checkout_fields' ), 100 );
 		add_action( 'edd_insert_payment', array( $this, 'check_for_email_signup' ), 10, 2 );
-		add_action( 'edd_complete_download_purchase', array( $this, 'completed_download_purchase_signup' ), 10, 3 );
+		add_action( 'edd_after_payment_actions', array( $this, 'maybe_subscribe_customer' ), 10, 3 );
 		add_action( 'add_meta_boxes', array( $this, 'add_metabox' ) );
 		/* Filters */
 		add_filter( 'edd_settings_sections_extensions', array( $this, 'settings_section' ) );
@@ -622,9 +622,110 @@ final class EDD_ActiveCampaign {
 	}
 
 	/**
+	 * Subscribes a customer to all lists relevant to their payment
+	 * (if they opted in).
+	 *
+	 * @since 1.1.2
+	 *
+	 * @param int          $order_id
+	 * @param EDD_Payment  $payment
+	 * @param EDD_Customer $customer
+	 *
+	 * @return bool True if they were subscribed, false if not.
+	 */
+	public function maybe_subscribe_customer( $order_id, EDD_Payment $payment, EDD_Customer $customer ) {
+		// User didn't subscribe.
+		if ( ! $payment->get_meta( 'eddactivecampaign_activecampaign_signup' ) ) {
+			return false;
+		}
+
+		edd_debug_log( 'ActiveCampaign Debug - Order ' . $order_id . ': Beginning to process list signup.' );
+
+		// We're going to build up an array of list IDs to subscribe the user to.
+		$list_ids = $this->build_product_subscription_lists( $payment );
+
+		if ( empty( $list_ids ) ) {
+			if ( function_exists( 'edd_debug_log' ) ) {
+				edd_debug_log( 'ActiveCampaign Debug - List Check. No Download list ID predefined, attempting to load site default.' );
+			}
+
+			// No Download list set so return global list ID
+			$list_id = edd_get_option( 'eddactivecampaign_list', false );
+			if ( ! $list_id ) {
+				if ( function_exists( 'edd_debug_log' ) ) {
+					edd_debug_log( 'ActiveCampaign Debug - List Check. No global site list ID defined, exiting.' );
+				}
+				return false;
+			}
+
+			$list_ids = array( $list_id );
+		}
+
+		$lists     = array_unique( $list_ids );
+		$user_info = edd_get_payment_meta_user_info( $order_id );
+
+		foreach( $lists as $list ) {
+			edd_debug_log( sprintf( 'ActiveCampaign Debug - Subscribing user to list %s', esc_html( $list ) ) );
+			$this->subscribe_email( $user_info['email'], $user_info['first_name'], $user_info['last_name'], $list );
+		}
+
+		// Cleanup after ourselves
+		$payment->delete_meta( 'eddactivecampaign_activecampaign_signup' );
+
+		return true;
+	}
+
+	/**
+	 * Builds an array of all list IDs linked to a payment's downloads.
+	 *
+	 * @since 1.1.2
+	 *
+	 * @param EDD_Payment $payment
+	 *
+	 * @return array
+	 */
+	private function build_product_subscription_lists( EDD_Payment $payment ) {
+		$lists     = array();
+		$downloads = $payment->downloads;
+
+		if ( empty( $downloads ) || ! is_array( $downloads ) ) {
+			return $lists;
+		}
+
+		foreach( $downloads as $download_details ) {
+			if ( empty( $download_details['id'] ) ) {
+				continue;
+			}
+
+			$this_download_lists = get_post_meta( $download_details['id'], '_edd_activecampaign', true );
+			if ( ! empty( $this_download_lists ) ) {
+				$lists = array_merge( $lists, (array) $this_download_lists );
+			}
+
+			// If this is a bundle, include all lists from included products.
+			if ( 'bundle' === edd_get_download_type( $download_details['id'] ) ) {
+				$downloads = edd_get_bundled_products( $download_details['id'] );
+
+				if ( $downloads ) {
+					foreach ( $downloads as $id ) {
+						$download_lists = get_post_meta( $id, '_edd_activecampaign', true );
+						if ( is_array( $download_lists ) ) {
+							$lists = array_merge( $download_lists, (array) $lists );
+						}
+					}
+				}
+			}
+		}
+
+		return $lists;
+	}
+
+	/**
 	 * Check if a customer needs to be subscribed on completed purchase of specific products.
 	 *
 	 * @since  1.1
+	 * @deprecated 1.1.2 In favour of `maybe_subscribe_customer()`
+	 * @see EDD_ActiveCampaign::maybe_subscribe_customer()
 	 * @access public
 	 *
 	 * @param int    $download_id   Download ID.
