@@ -645,16 +645,12 @@ final class EDD_ActiveCampaign {
 		$list_ids = $this->build_product_subscription_lists( $payment );
 
 		if ( empty( $list_ids ) ) {
-			if ( function_exists( 'edd_debug_log' ) ) {
-				edd_debug_log( 'ActiveCampaign Debug - List Check. No Download list ID predefined, attempting to load site default.' );
-			}
+			edd_debug_log( 'ActiveCampaign Debug - List Check. No Download list ID predefined, attempting to load site default.' );
 
 			// No Download list set so return global list ID
 			$list_id = edd_get_option( 'eddactivecampaign_list', false );
 			if ( ! $list_id ) {
-				if ( function_exists( 'edd_debug_log' ) ) {
-					edd_debug_log( 'ActiveCampaign Debug - List Check. No global site list ID defined, exiting.' );
-				}
+				edd_debug_log( 'ActiveCampaign Debug - List Check. No global site list ID defined, exiting.' );
 				return false;
 			}
 
