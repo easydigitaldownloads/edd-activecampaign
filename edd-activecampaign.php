@@ -550,7 +550,7 @@ final class EDD_ActiveCampaign {
 
 		$lists = $ac->api( 'list/list', array( 'ids' => 'all' ) );
 
-		if ( $lists->success && (int) $lists->success ) {
+		if ( isset( $lists->success ) && (int) $lists->success ) {
 			// We need to cast the object to an array because ActiveCampaign returns invalid JSON.
 			$lists = (array) $lists;
 
