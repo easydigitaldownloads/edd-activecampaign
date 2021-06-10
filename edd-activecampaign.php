@@ -541,14 +541,18 @@ final class EDD_ActiveCampaign {
 			return array();
 		}
 
-		// Load ActiveCampaign API
+		// Load ActiveCampaign API.
 		if ( ! class_exists( 'ActiveCampaign' ) ) {
 			require_once( 'vendor/ActiveCampaign.class.php' );
 		}
 
 		$ac = new ActiveCampaign( edd_get_option( 'eddactivecampaign_apiurl' ), edd_get_option( 'eddactivecampaign_api' ) );
 
-		$lists = $ac->api( 'list/list', array( 'ids' => 'all' ) );
+		$lists = get_transient( 'edd_activecampaign_list_data' );
+		if ( false === $lists ) {
+			$lists = $ac->api( 'list/list', array( 'ids' => 'all' ) );
+			set_transient( 'edd_activecampaign_list_data', $lists, 3 * HOUR_IN_SECONDS );
+		}
 
 		if ( isset( $lists->success ) && (int) $lists->success ) {
 			// We need to cast the object to an array because ActiveCampaign returns invalid JSON.
