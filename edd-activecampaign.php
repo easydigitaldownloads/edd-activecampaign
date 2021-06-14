@@ -548,17 +548,18 @@ final class EDD_ActiveCampaign {
 
 		$ac = new ActiveCampaign( edd_get_option( 'eddactivecampaign_apiurl' ), edd_get_option( 'eddactivecampaign_api' ) );
 
-		$lists = get_transient( 'edd_activecampaign_list_data' );
-		if ( false === $lists ) {
-			$lists = $ac->api( 'list/list', array( 'ids' => 'all' ) );
-			set_transient( 'edd_activecampaign_list_data', $lists, 3 * HOUR_IN_SECONDS );
+		$transient = get_transient( 'edd_activecampaign_list_data' );
+		if ( $transient ) {
+			return $transient;
 		}
+
+		$lists = $ac->api( 'list/list', array( 'ids' => 'all' ) );
+
+		$output = array();
 
 		if ( isset( $lists->success ) && (int) $lists->success ) {
 			// We need to cast the object to an array because ActiveCampaign returns invalid JSON.
 			$lists = (array) $lists;
-
-			$output = array();
 
 			foreach ( $lists as $key => $list ) {
 				if ( ! is_numeric( $key ) ) {
@@ -568,10 +569,11 @@ final class EDD_ActiveCampaign {
 				$output[ $list->id ] = $list->name;
 			}
 
-			return $output;
-		} else {
-			return array();
+			set_transient( 'edd_activecampaign_list_data', $output, 3 * HOUR_IN_SECONDS );
 		}
+
+		return $output;
+
 	}
 
 	/**
