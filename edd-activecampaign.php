@@ -311,10 +311,9 @@ final class EDD_ActiveCampaign {
 		add_action( 'edd_insert_payment', array( $this, 'check_for_email_signup' ), 10, 2 );
 		add_action( 'edd_after_payment_actions', array( $this, 'maybe_subscribe_customer' ), 10, 3 );
 		add_action( 'add_meta_boxes', array( $this, 'add_metabox' ) );
-		// Hook into admin_enqueue_scripts to add JS file.
-		add_action( 'admin_enqueue_scripts', 'edd_activecampaign_scripts' );
-		// Not sure about the handle here.
-		add_action( 'admin_enqueue_scripts', 'edd_activecampaign_refresh_lists' );
+			// Hook into admin_enqueue_scripts to add JS file.
+			add_action( 'admin_enqueue_scripts', array( $this, 'edd_activecampaign_scripts' ) );
+			add_action( 'admin_enqueue_scripts', array( $this, 'edd_activecampaign_refresh_lists' ) );
 		/* Filters */
 		add_filter( 'edd_settings_sections_extensions', array( $this, 'settings_section' ) );
 		add_filter( 'edd_settings_extensions', array( $this, 'register_settings' ) );
@@ -612,7 +611,7 @@ final class EDD_ActiveCampaign {
 			echo '</label><br/>';
 		}
 		?>
-		<button class="edd_active_campaign_refresh_lists" data-nonce="<?php echo esc_attr( wp_create_nonce( 'edd_activecampaign_refresh_lists' ) ); ?>">
+		<button class="edd_activecampaign_refresh_lists" data-nonce="<?php echo esc_attr( wp_create_nonce( 'edd_activecampaign_refresh_lists' ) ); ?>">
 			<?php esc_html_e( 'Refresh Lists', 'edd-activecampaign' ); ?>
 		</button>
 		<?php
@@ -810,17 +809,18 @@ final class EDD_ActiveCampaign {
 		 * @param array $args $args An array of arguments from the GET query.
 		 * @return void
 		 */
-		public function edd_activecampaign_refresh_lists() {
+		public function edd_activecampaign_refresh_lists( $args ) {
 			global $wpdb;
+
 			// validate nonce and exit with wp_send_json_error().
-			if ( empty( $args['_wpnonce'] ) || ! wp_verify_nonce( $args['_wpnonce'], 'edd_activecampaign_refresh_lists' ) ) {
-				wp_send_json_error(
-					array(
-						'message' => __( 'Nonce verification failed.', 'edd_activecampaign' ),
-					),
-					403
-				);
-			}
+			// if ( empty( $args['_wpnonce'] ) || ! wp_verify_nonce( $args['_wpnonce'], 'edd_activecampaign_refresh_lists' ) ) {
+			// 	wp_send_json_error(
+			// 		array(
+			// 			'message' => __( 'Nonce verification failed.', 'edd_activecampaign' ),
+			// 		),
+			// 		403
+			// 	);
+			// }
 			// permission check for edit_products.
 			if ( ! current_user_can( 'edit_products' ) ) {
 				wp_send_json_error(
