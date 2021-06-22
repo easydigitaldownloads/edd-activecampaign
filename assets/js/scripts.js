@@ -4,8 +4,8 @@ jQuery(document).ready(function($) {
 		var button = $( this ),
 		data = {
 			action: 'edd_activecampaign_refresh_lists',
-			nonce: nonce
 		}
+		button.data( 'nonce' );
 		button.toggleClass( 'button-disabled' );
 		$.post( ajaxurl, data, function( response, status ) {
 			button.toggleClass( 'button-disabled' );
