@@ -832,6 +832,8 @@ final class EDD_ActiveCampaign {
 			// delete transient.
 			delete_transient( 'edd_activecampaign_list_data' );
 			// get lists and return wp_send_json_success.
+			$lists = get_lists();
+			return wp_send_json_success( 'SUCCESS', $lists );
 		}
 }
 
