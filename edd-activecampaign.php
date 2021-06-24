@@ -799,20 +799,21 @@ final class EDD_ActiveCampaign {
 		 * @return void
 		 */
 		public function load_admin_scripts() {
-			wp_enqueue_script( 'load_admin_scripts', $this->plugin_url . 'assets/js/scripts.js', array( 'jquery' ) );
+			wp_enqueue_script( 'edd-activecampaign', $this->plugin_url . 'assets/js/scripts.js', array( 'jquery' ) );
 		}
 
 		/**
 		 * Delete saved transient and retrieve lists from ActiveCampaign.
 		 *
 		 * @since 1.1.2
-		 * @param array $args $args An array of arguments from the GET query.
+
 		 * @return void
 		 */
-		public function refresh_lists( $args ) {
+		public function refresh_lists() {
 			global $wpdb;
+
 			// validate nonce and exit with wp_send_json_error().
-			if ( empty( $args['nonce'] ) || ! wp_verify_nonce( $args['nonce'], 'edd_activecampaign_refresh_lists' ) ) {
+			if ( empty( $_POST['nonce'] ) || ! wp_verify_nonce( $_POST['nonce'], 'edd_activecampaign_refresh_lists' ) ) {
 				wp_send_json_error(
 					array(
 						'message' => __( 'Nonce verification failed.', 'edd_activecampaign' ),
@@ -832,8 +833,8 @@ final class EDD_ActiveCampaign {
 			// delete transient.
 			delete_transient( 'edd_activecampaign_list_data' );
 			// get lists and return wp_send_json_success.
-			$lists = get_lists();
-			return wp_send_json_success( 'SUCCESS', $lists );
+			$lists = $this->get_lists();
+			wp_send_json_success( $lists );
 		}
 }
 
