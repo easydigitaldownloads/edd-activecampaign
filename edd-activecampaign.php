@@ -591,31 +591,33 @@ final class EDD_ActiveCampaign {
 		}
 	}
 
-	/**
-	 * Render the metabox displayed on the Download edit screen.
-	 *
-	 * @since  1.1
-	 * @access public
-	 */
-	public function render_metabox() {
-		global $post;
+		/**
+		 * Render the metabox displayed on the Download edit screen.
+		 *
+		 * @since  1.1
+		 * @access public
+		 */
+		public function render_metabox() {
+			global $post;
 
-		echo '<p>' . __( 'Select the lists you wish buyers to be subscribed to when purchasing.', 'edd-activecampaign' ) . '</p>';
+			echo '<p>' . __( 'Select the lists you wish buyers to be subscribed to when purchasing.', 'edd-activecampaign' ) . '</p>';
 
-		$checked = (array) get_post_meta( $post->ID, '_edd_activecampaign', true );
+			$checked = (array) get_post_meta( $post->ID, '_edd_activecampaign', true );
 
-		foreach ( $this->get_lists() as $list_id => $list_name ) {
-			echo '<label>';
-				echo '<input type="checkbox" name="_edd_activecampaign[]" value="' . esc_attr( $list_id ) . '"' . checked( true, in_array( $list_id, $checked ), false ) . '>';
-				echo '&nbsp;' . $list_name;
-			echo '</label><br/>';
+			echo '<div class="edd_activecampaign_lists">';
+			foreach ( $this->get_lists() as $list_id => $list_name ) {
+				echo '<label>';
+					echo '<input type="checkbox" name="_edd_activecampaign[]" value="' . esc_attr( $list_id ) . '"' . checked( true, in_array( $list_id, $checked ), false ) . '>';
+					echo '&nbsp;' . $list_name;
+				echo '</label><br/>';
+			}
+			echo '</div>';
+			?>
+			<button class="edd_activecampaign_refresh_lists" data-nonce="<?php echo esc_attr( wp_create_nonce( 'edd_activecampaign_refresh_lists' ) ); ?>">
+				<?php esc_html_e( 'Refresh Lists', 'edd-activecampaign' ); ?>
+			</button>
+			<?php
 		}
-		?>
-		<button class="edd_activecampaign_refresh_lists" data-nonce="<?php echo esc_attr( wp_create_nonce( 'edd_activecampaign_refresh_lists' ) ); ?>">
-			<?php esc_html_e( 'Refresh Lists', 'edd-activecampaign' ); ?>
-		</button>
-		<?php
-	}
 
 	/**
 	 * Save metabox data.
