@@ -12,12 +12,10 @@ jQuery( document ).ready( function( $ ) {
 			let lists = response.data;
 			var lists_array = Object.values(lists);
 			let text = []
-			// $('.edd_activecampaign_lists').text(lists_array);
 			for ( let i = 0; i < lists_array.length; i++ ) {
-				text.push('<p>lists_array[i]<p><br>')
+				text.push('<input type="checkbox">' + lists_array[i]);
 			}
-			console.log(text);
-			$('.edd_activecampaign_lists').text(text);
+			$('.edd_activecampaign_lists').html(text);
 		})
 	});
 });
