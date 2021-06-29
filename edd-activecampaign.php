@@ -497,6 +497,7 @@ final class EDD_ActiveCampaign {
 			),
 			array(
 				'id'      => 'eddactivecampaign_list',
+				'class'   => 'edd_activecampaign_lists',
 				'name'    => __( 'Choose a list', 'edd-activecampaign' ),
 				'desc'    => __( 'Select the list you wish to subscribe buyers to.', 'edd-activecampaign' ),
 				'type'    => 'select',
@@ -613,7 +614,7 @@ final class EDD_ActiveCampaign {
 			}
 			echo '</div>';
 			?>
-			<button class="edd_activecampaign_refresh_lists" data-nonce="<?php echo esc_attr( wp_create_nonce( 'edd_activecampaign_refresh_lists' ) ); ?>">
+			<button class="edd_activecampaign_refresh_lists" data-nonce="<?php echo esc_attr( wp_create_nonce( 'edd_activecampaign_refresh_lists' ) ); ?>" data-format="checkbox">
 				<?php esc_html_e( 'Refresh Lists', 'edd-activecampaign' ); ?>
 			</button>
 			<?php

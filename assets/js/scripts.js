@@ -4,18 +4,27 @@ jQuery( document ).ready( function( $ ) {
 		var button = $( this ),
 		data = {
 			action: 'edd_activecampaign_refresh_lists',
-			nonce: button.data( 'nonce' )
+			nonce: button.data( 'nonce' ),
+			format: button.data( 'format' )
 		}
+		console.log( data );
 		button.toggleClass( 'button-disabled' );
 		$.post( ajaxurl, data, function( response, status ) {
 			button.toggleClass( 'button-disabled' );
-			let lists = response.data;
-			var lists_array = Object.values(lists);
-			let text = []
-			for ( let i = 0; i < lists_array.length; i++ ) {
-				text.push('<input type="checkbox">' + lists_array[i]);
+			if( 'success' === status ) {
+				let lists = response.data;
+				var lists_array = Object.values( lists );
+				let text = []
+				for ( let i = 0; i < lists_array.length; i++ ) {
+					if ( "checkbox" === data.format) {
+						text.push( '<input type="checkbox" name="_edd_activecampaign[]" value='+ i + '>' + lists_array[i] );
+					} else if ( "dropdown" === data.format ) {
+						// text.push( '<option name="_edd_activecampaign[]" value='+ i + '>' + lists_array[i] );
+						console.log('dropdown');
+					}
+				}
+				$( '.edd_activecampaign_lists' ).html( text );
 			}
-			$('.edd_activecampaign_lists').html(text);
 		})
 	});
 });
