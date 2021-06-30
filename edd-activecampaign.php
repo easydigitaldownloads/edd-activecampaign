@@ -314,8 +314,6 @@ final class EDD_ActiveCampaign {
 			// Hook into admin_enqueue_scripts to add JS file.
 			add_action( 'admin_enqueue_scripts', array( $this, 'load_admin_scripts' ) );
 			add_action( 'wp_ajax_edd_activecampaign_refresh_lists', array( $this, 'refresh_lists' ) );
-			// Hook into settings.
-			add_action( 'edd_settings_tab_bottom_extensions_activecampaign', array( $this, 'refresh_lists' ) );
 		/* Filters */
 		add_filter( 'edd_settings_sections_extensions', array( $this, 'settings_section' ) );
 		add_filter( 'edd_settings_extensions', array( $this, 'register_settings' ) );
@@ -513,23 +511,6 @@ final class EDD_ActiveCampaign {
 				'size'    => 'regular',
 			),
 		);
-
-			$refresh_list_url = add_query_arg(
-				array(
-					'settings-updated' => false,
-					'page'             => 'settings',
-					'tab'              => 'extensions',
-					'section'          => 'activecampaign',
-					'edd-action'       => 'refresh_lists',
-					'nonce'            => wp_create_nonce( 'edd_activecampaign_refresh_lists' ),
-				),
-				admin_url( 'edit.php?post_type=download' )
-			);
-			?>
-			<a href="<?php echo esc_url( $refresh_list_url ); ?>" class="edd_activecampaign_refresh_lists" data-format="dropdown">
-					<?php esc_html_e( 'Refresh Lists', 'edd-activecampaign' ); ?>
-			</a>
-			<?php
 
 		if ( version_compare( EDD_VERSION, 2.5, '>=' ) ) {
 			$activecampaign_settings = array( 'activecampaign' => $activecampaign_settings );
