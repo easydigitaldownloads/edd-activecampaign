@@ -7,7 +7,6 @@ jQuery( document ).ready( function( $ ) {
 			nonce: button.data( 'nonce' ),
 			format: button.data( 'format' )
 		}
-		console.log( data );
 		button.toggleClass( 'button-disabled' );
 		$.post( ajaxurl, data, function( response, status ) {
 			button.toggleClass( 'button-disabled' );
