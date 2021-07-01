@@ -318,6 +318,8 @@ final class EDD_ActiveCampaign {
 		add_filter( 'edd_settings_sections_extensions', array( $this, 'settings_section' ) );
 		add_filter( 'edd_settings_extensions', array( $this, 'register_settings' ) );
 		add_filter( 'edd_metabox_fields_save', array( $this, 'save_metabox' ) );
+			// Add button to Settings to refresh lists.
+			add_filter( 'edd_after_setting_output', array( $this, 'add_refresh_button_to_settings_dropdown' ), 10, 2 );
 
 		do_action_ref_array( 'edd_activecampaign_after_setup_actions', array( &$this ) );
 	}
@@ -838,6 +840,25 @@ final class EDD_ActiveCampaign {
 			// get lists and return wp_send_json_success.
 			$lists = $this->get_lists();
 			wp_send_json_success( $lists );
+		}
+
+		/**
+		 * Add a refresh button to Settings page.
+		 *
+		 * @since 1.1.2
+		 * @param string $output A string of HTML to display.
+		 * @param array  $args   An array of arguments used to create the setting.
+		 *
+		 * @return string
+		 */
+		public function add_refresh_button_to_settings_dropdown( $output, $args ) {
+			if ( empty( $args['id'] ) || 'eddactivecampaign_list' !== $args['id'] ) {
+				return;
+			}
+
+			$button = '<button class="edd_activecampaign_refresh_lists button" data-format="dropdown" data-nonce="' . esc_attr( wp_create_nonce( 'edd_activecampaign_refresh_lists' ) ) . '">' . __( 'Refresh Lists', 'edd_activecampaign' ) . '</button>';
+
+			return str_replace( '<p', $button . '<p', $output );
 		}
 }
 
