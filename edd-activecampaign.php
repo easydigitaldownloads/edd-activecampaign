@@ -616,7 +616,7 @@ final class EDD_ActiveCampaign {
 			}
 			echo '</div>';
 			?>
-			<button class="edd_activecampaign_refresh_lists" data-nonce="<?php echo esc_attr( wp_create_nonce( 'edd_activecampaign_refresh_lists' ) ); ?>" data-format="checkbox">
+			<button class="edd_activecampaign_refresh_lists button" data-nonce="<?php echo esc_attr( wp_create_nonce( 'edd_activecampaign_refresh_lists' ) ); ?>" data-format="checkbox">
 				<?php esc_html_e( 'Refresh Lists', 'edd-activecampaign' ); ?>
 			</button>
 			<?php
@@ -853,11 +853,10 @@ final class EDD_ActiveCampaign {
 		 */
 		public function add_refresh_button_to_settings_dropdown( $output, $args ) {
 			if ( empty( $args['id'] ) || 'eddactivecampaign_list' !== $args['id'] ) {
-				return;
+				return $output;
 			}
 
 			$button = '<button class="edd_activecampaign_refresh_lists button" data-format="dropdown" data-nonce="' . esc_attr( wp_create_nonce( 'edd_activecampaign_refresh_lists' ) ) . '">' . __( 'Refresh Lists', 'edd_activecampaign' ) . '</button>';
-
 			return str_replace( '<p', $button . '<p', $output );
 		}
 }
