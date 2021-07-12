@@ -311,10 +311,15 @@ final class EDD_ActiveCampaign {
 		add_action( 'edd_insert_payment', array( $this, 'check_for_email_signup' ), 10, 2 );
 		add_action( 'edd_after_payment_actions', array( $this, 'maybe_subscribe_customer' ), 10, 3 );
 		add_action( 'add_meta_boxes', array( $this, 'add_metabox' ) );
+			// Hook into admin_enqueue_scripts to add JS file.
+			add_action( 'admin_enqueue_scripts', array( $this, 'load_admin_scripts' ) );
+			add_action( 'wp_ajax_edd_activecampaign_refresh_lists', array( $this, 'refresh_lists' ) );
 		/* Filters */
 		add_filter( 'edd_settings_sections_extensions', array( $this, 'settings_section' ) );
 		add_filter( 'edd_settings_extensions', array( $this, 'register_settings' ) );
 		add_filter( 'edd_metabox_fields_save', array( $this, 'save_metabox' ) );
+			// Add button to Settings to refresh lists.
+			add_filter( 'edd_after_setting_output', array( $this, 'add_refresh_button_to_settings_dropdown' ), 10, 2 );
 
 		do_action_ref_array( 'edd_activecampaign_after_setup_actions', array( &$this ) );
 	}
@@ -494,6 +499,7 @@ final class EDD_ActiveCampaign {
 			),
 			array(
 				'id'      => 'eddactivecampaign_list',
+				'class'   => 'edd_activecampaign_lists',
 				'name'    => __( 'Choose a list', 'edd-activecampaign' ),
 				'desc'    => __( 'Select the list you wish to subscribe buyers to.', 'edd-activecampaign' ),
 				'type'    => 'select',
@@ -588,26 +594,33 @@ final class EDD_ActiveCampaign {
 		}
 	}
 
-	/**
-	 * Render the metabox displayed on the Download edit screen.
-	 *
-	 * @since  1.1
-	 * @access public
-	 */
-	public function render_metabox() {
-		global $post;
+		/**
+		 * Render the metabox displayed on the Download edit screen.
+		 *
+		 * @since  1.1
+		 * @access public
+		 */
+		public function render_metabox() {
+			global $post;
 
-		echo '<p>' . __( 'Select the lists you wish buyers to be subscribed to when purchasing.', 'edd-activecampaign' ) . '</p>';
+			echo '<p>' . __( 'Select the lists you wish buyers to be subscribed to when purchasing.', 'edd-activecampaign' ) . '</p>';
 
-		$checked = (array) get_post_meta( $post->ID, '_edd_activecampaign', true );
+			$checked = (array) get_post_meta( $post->ID, '_edd_activecampaign', true );
 
-		foreach ( $this->get_lists() as $list_id => $list_name ) {
-			echo '<label>';
-				echo '<input type="checkbox" name="_edd_activecampaign[]" value="' . esc_attr( $list_id ) . '"' . checked( true, in_array( $list_id, $checked ), false ) . '>';
-				echo '&nbsp;' . $list_name;
-			echo '</label><br/>';
+			echo '<div class="edd_activecampaign_lists">';
+			foreach ( $this->get_lists() as $list_id => $list_name ) {
+				echo '<label>';
+					echo '<input type="checkbox" name="_edd_activecampaign[]" value="' . esc_attr( $list_id ) . '"' . checked( true, in_array( $list_id, $checked ), false ) . '>';
+					echo '&nbsp;' . $list_name;
+				echo '</label><br/>';
+			}
+			echo '</div>';
+			?>
+			<button class="edd_activecampaign_refresh_lists button" data-nonce="<?php echo esc_attr( wp_create_nonce( 'edd_activecampaign_refresh_lists' ) ); ?>" data-format="checkbox">
+				<?php esc_html_e( 'Refresh Lists', 'edd-activecampaign' ); ?>
+			</button>
+			<?php
 		}
-	}
 
 	/**
 	 * Save metabox data.
@@ -784,6 +797,68 @@ final class EDD_ActiveCampaign {
 			$payment->delete_meta( 'eddactivecampaign_activecampaign_signup' );
 		}
 	}
+		/**
+		 * Enqueues the JavaScript files.
+		 *
+		 * @since 1.1.2
+		 * @return void
+		 */
+		public function load_admin_scripts() {
+			wp_enqueue_script( 'edd-activecampaign', $this->plugin_url . 'assets/js/scripts.js', array( 'jquery' ) );
+		}
+
+		/**
+		 * Delete saved transient and retrieve lists from ActiveCampaign.
+		 *
+		 * @since 1.1.2
+
+		 * @return void
+		 */
+		public function refresh_lists() {
+			global $wpdb;
+
+			// validate nonce and exit with wp_send_json_error().
+			if ( empty( $_POST['nonce'] ) || ! wp_verify_nonce( $_POST['nonce'], 'edd_activecampaign_refresh_lists' ) ) {
+				wp_send_json_error(
+					array(
+						'message' => __( 'Nonce verification failed.', 'edd_activecampaign' ),
+					),
+					403
+				);
+			}
+			// permission check for edit_products.
+			if ( ! current_user_can( 'edit_products' ) ) {
+				wp_send_json_error(
+					array(
+						'message' => __( 'You do not have permission to edit this product.', 'edd_activecampaign' ),
+					),
+					403
+				);
+			}
+			// delete transient.
+			delete_transient( 'edd_activecampaign_list_data' );
+			// get lists and return wp_send_json_success.
+			$lists = $this->get_lists();
+			wp_send_json_success( $lists );
+		}
+
+		/**
+		 * Add a refresh button to Settings page.
+		 *
+		 * @since 1.1.2
+		 * @param string $output A string of HTML to display.
+		 * @param array  $args   An array of arguments used to create the setting.
+		 *
+		 * @return string
+		 */
+		public function add_refresh_button_to_settings_dropdown( $output, $args ) {
+			if ( empty( $args['id'] ) || 'eddactivecampaign_list' !== $args['id'] ) {
+				return $output;
+			}
+
+			$button = '<button class="edd_activecampaign_refresh_lists button" data-format="dropdown" data-nonce="' . esc_attr( wp_create_nonce( 'edd_activecampaign_refresh_lists' ) ) . '">' . __( 'Refresh Lists', 'edd_activecampaign' ) . '</button>';
+			return str_replace( '<p', $button . '<p', $output );
+		}
 }
 
 endif;
